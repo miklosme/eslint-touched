@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Miklos Megyes <m.miklos05@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "app-root-path": "^2.0.1",
