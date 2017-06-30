@@ -55,7 +55,6 @@ function getTouchedLines(leftData) {
 }
 
 function parse(data) {
-    console.log('WATCH', 'data', data)
     return data
         .split('\n')
         .reduce((normalised, line, index, allData) => {
