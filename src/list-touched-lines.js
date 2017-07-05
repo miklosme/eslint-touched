@@ -39,22 +39,31 @@ function resolveHunkIdentifier(identifier) {
 
     return Array.from({ length: hunkLength }).map((_, index) => start + index);
 }
+function resolveHunkIdentifierInSequence(identifier) {
+    const [start, hunkLength] = identifier.split(',').map(x => parseInt(x, 10));
+
+    if (!hunkLength) {
+        return [[start, start]];
+    }
+
+    return [[start, start + hunkLength]];
+}
 
 function flatten(a, b) {
     return a.concat(b);
 }
 
-function getTouchedLines(leftData) {
+function getTouchedLines(leftData, lineIsSequence) {
     const endIndex = leftData.findIndex(isFileLine);
     return leftData
         .slice(0, endIndex)
         .filter(isHunkIdentifierLine)
         .map(getHunkIdentifierValues)
-        .map(resolveHunkIdentifier)
+        .map(lineIsSequence ? resolveHunkIdentifierInSequence : resolveHunkIdentifier)
         .reduce(flatten);
 }
 
-function parse(data) {
+function parse(data, lineIsSequence) {
     return data
         .split('\n')
         .reduce((normalised, line, index, allData) => {
@@ -63,7 +72,7 @@ function parse(data) {
                     ...normalised,
                     {
                         file: getFilePath(line),
-                        lines: getTouchedLines(allData.slice(index + 1)),
+                        lines: getTouchedLines(allData.slice(index + 1), lineIsSequence),
                     },
                 ];
             }
@@ -85,12 +94,12 @@ function mergeResults(a, b) {
     return Object.keys(normalised).map(file => ({ file, lines: normalised[file] }));
 }
 
-function listTouchedLines(src) {
+function listTouchedLines(src, lineIsSequence) {
     return Promise.all([
         execute(cmdGetDiffBranch(src)),
         execute(cmdGetDiffActual(src)),
     ])
-        .then(results => results.map(result => parse(result.stdout)))
+        .then(results => results.map(result => parse(result.stdout, lineIsSequence)))
         .then(results => results.reduce(mergeResults, []));
 }
 
